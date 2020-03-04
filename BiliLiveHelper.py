@@ -12,7 +12,7 @@ live_room = []
 prev_data = []
 now_list = []
 doloop = True
-path = './plugins/blh/live_room_id_list.text'
+path = './plugins/blh/live_room_id_list.txt'
 helpmsg = '''§b----BiliLiveHelper----§r
 ''' + prefix + '''显示帮助信息
 ''' + prefix + ''' list 查看可用成员直播间列表

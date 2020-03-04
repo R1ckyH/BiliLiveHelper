@@ -5,7 +5,7 @@ BiliLiveHelper:
     plugins/
     BiliLiveHelper.py
         blh/
-            live_room_id_list.text
+            live_room_id_list.txt
 
 配置文件格式:
 编号 直播间号 名称
