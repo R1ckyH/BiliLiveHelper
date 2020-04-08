@@ -1,11 +1,13 @@
 BiliLiveHelper:
     一个可以链接数个b站直播间弹幕与一个MC服务器的MCD插件
 
+支持MCD与MCDR
+
 配置文件应放在此目录下:
     plugins/
     BiliLiveHelper.py
         blh/
-            live_room_id_list.txt
+            live_room_id_list.json
 
 配置文件格式:
 编号 直播间号 名称

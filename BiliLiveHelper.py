@@ -3,16 +3,18 @@
 import requests
 import time
 import sys
+import json
+import copy
 
-reload(sys)
-sys.setdefaultencoding('utf-8')
 
 prefix = '!!BLH'
 live_room = []
 prev_data = []
 now_list = []
+people_num = 0
+reloaded = 0
 doloop = True
-path = './plugins/blh/live_room_id_list.txt'
+path = './plugins/blh/live_room_id_list.json'
 helpmsg = '''§b----BiliLiveHelper----§r
 ''' + prefix + '''显示帮助信息
 ''' + prefix + ''' list 查看可用成员直播间列表
@@ -45,13 +47,19 @@ def load_live_room_list(server):
     now_list = []
     live_room = []
     prev_data = []
-    with open('./plugins/blh/live_room_id_list.txt', 'r') as f:
+    with open(path, 'r') as f:
         for line in f:
             (num, roomid, name) = line.strip().split()
-            live_room.append({'num': num, 'roomid': roomid, 'name': unicode(name, 'gbk')})
+            live_room.append({'num': num, 'roomid': roomid, 'name': name})
             prev_data.append([])
             prev_data[-1] = post_data_url(post_info_data(-1)).json()['data']['room']
         server.say('§b[BLH]§r直播间列表重载成功')
+
+
+def reload_text(num):
+    global prev_data
+    prev_data[num] = post_data_url(post_info_data(num)).json()['data']['room']
+
 
 def onServerInfo(server, info):
     global now_list
@@ -80,7 +88,7 @@ def onServerInfo(server, info):
                         server.say(live_room[int(args[2])]['name'] + '的直播间已经被订阅！')
                     else:
                         now_list.append(int(args[2]))
-                        prev_data[int(args[2])] = post_data_url(post_info_data(int(args[2]))).json()['data']['room']
+                        reload_text(int(args[2]))
                         server.say('已订阅' + live_room[int(args[2])]['name'] + '的直播间')
                 except:
                     server.say('§b[BLH]§r输入错误')
@@ -99,32 +107,71 @@ def onServerStartup(server):
     load_live_room_list(server)
     live_room_connection(server)
 
+
 def live_room_connection(server):
     global now_list
+    global reloaded
     global isopen
     while True:
         try:
             server.say("[BLH]已上线")
             while doloop:
                 isopen = True
-                for each in now_list:
-                    try:
-                        post_data = post_info_data(each)
-                        response = post_data_url(post_data)
-                        data = response.json()['data']['room']
-                        new = [i for i in data if i not in prev_data[each]]
-                        for each_one in new:
-                            server.say('§b[BLH]§r§c[' + live_room[each]['name'] + ']§r' + each_one['nickname'] + ':' + each_one[
-                                'text'])
-                        prev_data[each] = data
-                    except:
-                        print("[BLH]通信失败")
-                        continue
+                if people_num == 0 and reloaded == 0:
+                    reloaded = 1
+                if people_num > 0:
+                    if reloaded == 1:
+                        for a in now_list:
+                            reload_text(a)
+                        reloaded = 0
+                    for each in now_list:
+                        try:
+                            post_data = post_info_data(each)
+                            response = post_data_url(post_data)
+                            data = response.json()['data']['room']
+                            new = [i for i in data if i not in prev_data[each]]
+                            for each_one in new:
+                                server.say('§b[BLH]§r§c[' + live_room[each]['name'] + ']§r' + each_one['nickname'] + ':' + each_one[
+                                    'text'])
+                            prev_data[each] = data
+                        except:
+                            print("[BLH]通信失败")
+                            continue
                 time.sleep(1)
         except Exception:
             if isopen:
                 isopen = False
                 server.say("[BLH]已下线")
 
+
+def on_server_startup(server):
+    onServerStartup(server)
+
+
+def on_info(server, info):
+    info2 = copy.deepcopy(info)
+    info2.isPlayer = info2.is_player
+    onServerInfo(server, info2)
+
+
+def onPlayerJoin(server, player):
+    global people_num
+    people_num += 1
+
+
+def on_player_joined(server, player):
+    onPlayerJoin(server, player)
+
+
+def onPlayerLeave(server, player):
+    global people_num
+    people_num -= 1
+
+
+def on_player_left(server, player):
+    onPlayerLeave(server, player)
+
+
 if __name__ == "__main__":
     live_room_connection(None)
+
