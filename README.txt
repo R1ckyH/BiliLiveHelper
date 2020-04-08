@@ -4,7 +4,7 @@ BiliLiveHelper:
 支持MCD与MCDR
 
 配置文件应放在此目录下:
-    plugins/
+plugins/
     BiliLiveHelper.py
         blh/
             live_room_id_list.json
